@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:14-alpine
+    container_name: zkteco_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: SuperSecurePassword2026!
+      POSTGRES_DB: zkteco_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  cache:
+    image: redis:7-alpine
+    container_name: zkteco_redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  middleware:
+    image: node:18-alpine
+    container_name: zkteco_middleware
+    restart: always
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "8081:8081"
+    environment:
+      PORT: 8081
+      DB_HOST: database
+      DB_NAME: zkteco_db
+      DB_USER: postgres
+      DB_PASSWORD: SuperSecurePassword2026!
+      REDIS_HOST: cache
+      DEPLOYMENT_ENV: prod
+      # Replace this with your computer's IP or Tailscale IP to turn on the whitelist
+      ALLOWED_IPS: "127.0.0.1" 
+    depends_on:
+      - database
+      - cache
+    command: >
+      sh -c "npm install express pg ioredis helmet express-rate-limit && node zk-middleware.js"

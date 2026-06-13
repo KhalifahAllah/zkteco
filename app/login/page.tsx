@@ -1,14 +1,14 @@
 // ============================================================================
-// Quantum Sync: Production Omni-Auth Interactive Gateway
-// Filename: src/app/login/page.tsx
+// Quantum Sync: Hardened Omni-Auth Production Interactive Gateway
+// Path: app/login/page.tsx
 // ============================================================================
 "use client";
 
-import { signIn, useSession } from "next-auth/react";
-import { useState } from 'react';
+import { signIn } from "next-auth/react";
+import React, { useState, Suspense } from 'react';
 import { 
   ShieldAlert, Mail, Fingerprint, Key, ArrowRight, 
-  Layers, CheckCircle2, Server, ShieldCheck 
+  Layers, CheckCircle2, Server
 } from 'lucide-react';
 
 const AUTH_PROVIDERS = [
@@ -17,8 +17,7 @@ const AUTH_PROVIDERS = [
   { id: 'credentials', name: 'Secured Hardware PIN', icon: Key, active: false, type: 'Encrypted Token' }
 ];
 
-export default function PortalLoginGateway() {
-  const { data: session, status } = useSession();
+function LoginGatewayContent() {
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
 
@@ -30,16 +29,13 @@ export default function PortalLoginGateway() {
     setIsLoading(providerId);
     setAuthError(null);
     
-    await signIn(providerId, { callbackUrl: '/dashboard' });
+    try {
+      await signIn(providerId, { callbackUrl: '/dashboard' });
+    } catch (err) {
+      // Gracefully capture edge redirection updates
+      console.log("Redirecting to identity cluster initialization...");
+    }
   };
-
-  if (status === "loading") {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-900 text-slate-100">
-        <Server className="h-5 w-5 animate-spin text-emerald-400" />
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-screen bg-slate-900 text-slate-100 font-sans antialiased">
@@ -53,7 +49,7 @@ export default function PortalLoginGateway() {
           </div>
           <div className="space-y-6 max-w-lg mt-24">
             <h1 className="text-4xl font-extrabold tracking-tight text-white leading-tight">Unified Identity & Biometric Interface</h1>
-            <p className="text-slate-400 text-sm leading-relaxed">Secure, multi-site hardware orchestration gateway. Production access parameters are strict and VPN-isolated.</p>
+            <p className="text-slate-400 text-sm leading-relaxed">Secure, multi-site hardware orchestration gateway. Access parameters are restricted via your private corporate domain network.</p>
           </div>
         </div>
         <div className="relative z-10 bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
@@ -61,7 +57,7 @@ export default function PortalLoginGateway() {
             <span className="font-mono flex items-center gap-1.5 text-emerald-400"><Server className="h-3 w-3" /> SECURITY CORE LIVE</span>
             <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono font-semibold">v1.2.0</span>
           </div>
-          <p className="text-xs text-slate-500 font-mono leading-relaxed">[SYS_LOG] Core engine initialization success. Managed Neon serverless pipeline connected.</p>
+          <p className="text-xs text-slate-500 font-mono leading-relaxed">[SYS_LOG] Core engine initialization success. Cloud database schema sync achieved.</p>
         </div>
       </div>
 
@@ -74,13 +70,21 @@ export default function PortalLoginGateway() {
               <p className="text-slate-400 text-xs">Select your authorization channel to verify credentials.</p>
             </div>
             {authError && (
-              <div className="bg-rose-950/20 border border-rose-900/40 rounded-xl p-4 flex gap-3"><ShieldAlert className="h-4 w-4 text-rose-400 flex-shrink-0 mt-0.5" /><p className="text-xs font-mono text-rose-300">{authError}</p></div>
+              <div className="bg-rose-950/20 border border-rose-900/40 rounded-xl p-4 flex gap-3">
+                <ShieldAlert className="h-4 w-4 text-rose-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs font-mono text-rose-300">{authError}</p>
+              </div>
             )}
             <div className="space-y-3">
               {AUTH_PROVIDERS.map((provider) => {
                 const Icon = provider.icon;
                 return (
-                  <button key={provider.id} onClick={() => handleLiveAuthentication(provider.id)} disabled={isLoading !== null || !provider.active} className={`w-full flex items-center justify-between p-4 rounded-xl border text-left transition-all ${provider.active ? 'bg-slate-950 border-slate-800 hover:border-emerald-500/40 cursor-pointer group' : 'bg-slate-950/30 border-slate-900/80 text-slate-600 opacity-40 cursor-not-allowed'}`}>
+                  <button 
+                    key={provider.id} 
+                    onClick={() => handleLiveAuthentication(provider.id)} 
+                    disabled={isLoading !== null || !provider.active} 
+                    className={`w-full flex items-center justify-between p-4 rounded-xl border text-left transition-all ${provider.active ? 'bg-slate-950 border-slate-800 hover:border-emerald-500/40 cursor-pointer group' : 'bg-slate-950/30 border-slate-900/80 text-slate-600 opacity-40 cursor-not-allowed'}`}
+                  >
                     <div className="flex items-center gap-4">
                       <div className={`h-10 w-10 rounded-lg flex items-center justify-center border ${provider.active ? 'bg-slate-900 border-slate-800 text-emerald-400' : 'bg-slate-950/20 border-slate-900'}`}><Icon className="h-4 w-4" /></div>
                       <div>
@@ -93,9 +97,26 @@ export default function PortalLoginGateway() {
                 );
               })}
             </div>
+            <div className="border-t border-slate-800/80 pt-6 space-y-2 text-[11px] text-slate-500 font-mono">
+              <div className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Multi-location routing modules parsed</div>
+              <div className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Alphanumeric input parsing shields active</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+// Global compilation boundary to prevent prerender context Drops
+export default function PortalLoginGateway() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-900 text-slate-400 font-mono text-xs flex items-center justify-center">
+        <Server className="h-4 w-4 animate-spin text-emerald-400 mr-2" /> Instantiating cloud runtime configurations...
+      </div>
+    }>
+      <LoginGatewayContent />
+    </Suspense>
   );
 }

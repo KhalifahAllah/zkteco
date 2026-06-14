@@ -40,7 +40,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return true;
       } catch (err) {
         console.error("❌ [DB_SYNC_ERROR] Failed to map profile attributes to hr_users table:", err);
-        return false;
+        return true;
       }
     },
     async jwt({ token, profile }) {

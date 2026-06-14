@@ -4,8 +4,8 @@
 // ============================================================================
 import { auth, signOut } from "../../auth"; // Relative import path correction
 import { redirect } from "next/navigation";
-import { pool } from "../../lib/db"; // Point directly to our singleton manager
-import { AttendancePunchLog } from "../../types/attendance";
+import { pool } from "../lib/db";
+import { AttendancePunchLog } from "../types/attendance";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 5; // You.com 5-second selective caching guard rule

@@ -2,10 +2,10 @@
 // Quantum Sync: Hardened Relational Telemetry Dashboard Viewport
 // Path: app/dashboard/page.tsx
 // ============================================================================
-import { auth, signOut } from "../../auth"; // Relative import path correction
+import { auth, signOut } from "../../auth";           // Up 2 steps to root auth.ts
 import { redirect } from "next/navigation";
-import { pool } from "../lib/db";
-import { AttendancePunchLog } from "../types/attendance";
+import { pool } from "../../lib/db";                  // Up 2 steps to root lib/db.ts
+import { AttendancePunchLog } from "../../types/attendance"; // Up 2 steps to root types/
 
 export const dynamic = "force-dynamic";
 export const revalidate = 5; // You.com 5-second selective caching guard rule

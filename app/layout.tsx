@@ -3,7 +3,7 @@
 // Path: app/layout.tsx
 // ============================================================================
 import React from 'react';
-import "./globals.css";
+import "./globals.css"; // Binds Tailwind stylesheets to all sub-routes
 import { Providers } from './providers';
 
 export default function RootLayout({

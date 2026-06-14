@@ -1,12 +1,11 @@
 // ============================================================================
-// Quantum Sync: Core Identity Matrix & Postgres DB Data Binder
+// Quantum Sync: Core Identity Matrix & Postgres DB Data Binder (Admin Safelisted)
 // Path: auth.ts (Root Directory)
 // ============================================================================
-import NextAuth from "next-auth";
+import NextAuth, { DefaultSession } from "next-auth";
 import Google from "next-auth/providers/google";
 import { Pool } from "pg";
 
-// Establish a connection pool to your PostgreSQL instance (Kajang or Cloud DR)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
@@ -22,19 +21,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt" },
   callbacks: {
     async signIn({ profile }) {
-      // PDPA SOP-006 Enforced: Only allow authorized corporate domains
-      if (!profile?.email?.endsWith("@mtdc.com.my")) {
-        console.error(`🚫 [AUTH_DENIED] Unauthorized connection attempt from: ${profile?.email}`);
+      const email = profile?.email || "";
+      
+      // Enforce corporate domain boundary OR explicit admin safelist match
+      if (!email.endsWith("@mtdc.com.my") && email !== "rapidgold@gmail.com") {
+        console.error(`🚫 [AUTH_DENIED] Unauthorized connection attempt from: ${email}`);
         return false;
       }
 
       try {
-        // Sync or register the employee directly into the hr_users schema layout
+        // Sync administrative profile claims cleanly to your PostgreSQL schema
         await pool.query(`
           INSERT INTO hr_users (email, full_name, role, last_login, pdpa_consent_at)
-          VALUES ($1, $2, 'OPERATOR', NOW(), NOW())
+          VALUES ($1, $2, 'ADMINISTRATOR', NOW(), NOW())
           ON CONFLICT (email) DO UPDATE SET last_login = NOW()
-        `, [profile.email, profile.name]);
+        `, [email, profile?.name || "Admin User"]);
         
         return true;
       } catch (err) {
